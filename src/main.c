@@ -84,6 +84,9 @@ void buscaCidade(thash* hash, int codigo_ibge){
 
 int main(){
     thash *hash = criarHash(16811);
+    FILE* arquivo = fopen("municipios.json", "r");
+    
 
+    fclose(arquivo);
     return EXIT_SUCCESS;
 }
