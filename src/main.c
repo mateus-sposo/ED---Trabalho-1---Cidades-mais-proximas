@@ -49,6 +49,10 @@ void insereCidade(thash *hash, tcidade cidade){
         }
         i++; //testar depois
     }
+    if(strcmp(cidade.nome, "Jales") == 0){
+        imprimeInforamacoes(hash->cidades[pos]);
+        printf("%d\n",pos);
+    }
 }
 
 void imprimeInforamacoes(tcidade cidade){
@@ -75,6 +79,7 @@ void buscaCidade(thash* hash, int codigo_ibge){
         }
         if(pos == inicio){
             printf("Cidade nao encontrada!\n");
+            printf("%d\n", pos);
             break;
         }
         i++;
@@ -82,38 +87,48 @@ void buscaCidade(thash* hash, int codigo_ibge){
     }
 }
 
-void lerarquivo(FILE* arquivo, thash* hash){
-    char linha = '{';
-    char lixo[100];
-    fscanf(arquivo, "%c", &linha);
-    int i = 0;
-    while(true){
-        fscanf(arquivo, "%c", &linha);
-        if(linha == '{'){
-            fscanf(arquivo, "%[^:] %d,", &hash->cidades[i].codigo_ibge);
-            fscanf(arquivo, "\"nome\": \"%[^\"]\",", hash->cidades[i].nome);
-            fscanf(arquivo, "\"latitude\": %lf,", &hash->cidades[i].latitude);
-            fscanf(arquivo, "\"longitude\": %lf,", &hash->cidades[i].longitude);
-            fscanf(arquivo, "\"capital\": %d,", &hash->cidades[i].capital);
-            fscanf(arquivo, "\"codigo_uf\": %d,", &hash->cidades[i].codigo_uf);
-            fscanf(arquivo, "\"siafi_id\": %d,", &hash->cidades[i].siafi_id);
-            fscanf(arquivo, "\"ddd\": %d,", &hash->cidades[i].ddd);
-            fscanf(arquivo, "\"fuso_horario\": \"%[^\"]\"", hash->cidades[i].fuso_horario);
-            fscanf(arquivo, "}", &linha);
+void lerArquivo(FILE* arquivo, thash* hash){
+    char linha[200];
+    tcidade cidade;
+    while(fgets(linha, 200, arquivo)){
+        if(strstr(linha, "codigo_ibge")){
+            sscanf(linha, "    \"codigo_ibge\": %d,", &cidade.codigo_ibge);
         }
-        else{
-            break;
+        if(strstr(linha, "nome")){
+            sscanf(linha, "    \"nome\": \"%[^\"]\",", cidade.nome);
         }
-        i++;
+        if(strstr(linha, "latitude")){
+            sscanf(linha, "    \"latitude\": %lf,", &cidade.latitude);
+        }
+        if(strstr(linha, "longitude")){
+            sscanf(linha, "    \"longitude\": %lf,", &cidade.longitude);
+        }
+        if(strstr(linha, "capital")){
+            sscanf(linha, "    \"capital\": %d,", &cidade.capital);
+        }
+        if(strstr(linha, "codigo_uf")){
+            sscanf(linha, "    \"codigo_uf\": %d,", &cidade.codigo_uf);
+        }
+        if(strstr(linha, "siafi_id")){
+            sscanf(linha, "    \"siafi_id\": %d,", &cidade.siafi_id);
+        }
+        if(strstr(linha, "ddd")){
+            sscanf(linha, "    \"ddd\": %d,", &cidade.ddd);
+        }
+        if(strstr(linha, "fuso_horario")){
+            sscanf(linha, "    \"fuso_horario\": \"%[^\"]\",", cidade.fuso_horario);
+            insereCidade(hash, cidade);
+        }
     }
 }
 
 int main(){
     thash *hash = criarHash(16811);
     FILE* arquivo = fopen("../dados/municipios.json", "r");
-    
+
     lerarquivo(arquivo, hash);
-    printf("%d\n", hash->cidades[0].codigo_ibge);
+
+    buscaCidade(hash, 3524808);
 
     fclose(arquivo);
     return EXIT_SUCCESS;
