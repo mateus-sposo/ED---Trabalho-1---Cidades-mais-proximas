@@ -38,6 +38,18 @@ int h(int codigo_ibge, int tamanho){
     return (codigo_ibge) % tamanho;
 }
 
+void imprimeInforamacoes(tcidade cidade){
+    printf("Codigo IBGE: %d\n", cidade.codigo_ibge);
+    printf("Nome: %s\n", cidade.nome);
+    printf("Latitude: %lf\n", cidade.latitude);
+    printf("Longitude: %lf\n", cidade.longitude);
+    printf("Capital: %d\n", cidade.capital);
+    printf("Codigo UF: %d\n", cidade.codigo_uf);
+    printf("Siafi ID: %d\n", cidade.siafi_id);
+    printf("DDD: %d\n", cidade.ddd);
+    printf("Fuso Horario: %s\n", cidade.fuso_horario);
+}
+
 void insereCidade(thash *hash, tcidade cidade){
     int i = 0;
     int pos; 
@@ -53,18 +65,6 @@ void insereCidade(thash *hash, tcidade cidade){
         imprimeInforamacoes(hash->cidades[pos]);
         printf("%d\n",pos);
     }
-}
-
-void imprimeInforamacoes(tcidade cidade){
-    printf("Codigo IBGE: %d\n", cidade.codigo_ibge);
-    printf("Nome: %s\n", cidade.nome);
-    printf("Latitude: %lf\n", cidade.latitude);
-    printf("Longitude: %lf\n", cidade.longitude);
-    printf("Capital: %d\n", cidade.capital);
-    printf("Codigo UF: %d\n", cidade.codigo_uf);
-    printf("Siafi ID: %d\n", cidade.siafi_id);
-    printf("DDD: %d\n", cidade.ddd);
-    printf("Fuso Horario: %s\n", cidade.fuso_horario);
 }
 
 void buscaCidade(thash* hash, int codigo_ibge){
@@ -126,7 +126,7 @@ int main(){
     thash *hash = criarHash(16811);
     FILE* arquivo = fopen("../dados/municipios.json", "r");
 
-    lerarquivo(arquivo, hash);
+    lerArquivo(arquivo, hash);
 
     buscaCidade(hash, 3524808);
 
