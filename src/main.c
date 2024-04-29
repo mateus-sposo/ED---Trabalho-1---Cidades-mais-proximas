@@ -82,10 +82,38 @@ void buscaCidade(thash* hash, int codigo_ibge){
     }
 }
 
+void lerarquivo(FILE* arquivo, thash* hash){
+    char linha = '{';
+    char lixo[100];
+    fscanf(arquivo, "%c", &linha);
+    int i = 0;
+    while(true){
+        fscanf(arquivo, "%c", &linha);
+        if(linha == '{'){
+            fscanf(arquivo, "%[^:] %d,", &hash->cidades[i].codigo_ibge);
+            fscanf(arquivo, "\"nome\": \"%[^\"]\",", hash->cidades[i].nome);
+            fscanf(arquivo, "\"latitude\": %lf,", &hash->cidades[i].latitude);
+            fscanf(arquivo, "\"longitude\": %lf,", &hash->cidades[i].longitude);
+            fscanf(arquivo, "\"capital\": %d,", &hash->cidades[i].capital);
+            fscanf(arquivo, "\"codigo_uf\": %d,", &hash->cidades[i].codigo_uf);
+            fscanf(arquivo, "\"siafi_id\": %d,", &hash->cidades[i].siafi_id);
+            fscanf(arquivo, "\"ddd\": %d,", &hash->cidades[i].ddd);
+            fscanf(arquivo, "\"fuso_horario\": \"%[^\"]\"", hash->cidades[i].fuso_horario);
+            fscanf(arquivo, "}", &linha);
+        }
+        else{
+            break;
+        }
+        i++;
+    }
+}
+
 int main(){
     thash *hash = criarHash(16811);
-    FILE* arquivo = fopen("municipios.json", "r");
+    FILE* arquivo = fopen("../dados/municipios.json", "r");
     
+    lerarquivo(arquivo, hash);
+    printf("%d\n", hash->cidades[0].codigo_ibge);
 
     fclose(arquivo);
     return EXIT_SUCCESS;
