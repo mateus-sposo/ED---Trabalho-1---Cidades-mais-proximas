@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #define MAX 50
 #define TAM 16811
 
@@ -20,11 +21,43 @@ typedef struct _cidade{
     char fuso_horario[MAX];
 }tcidade;
 
+typedef struct _no{
+    tcidade cidade;
+    struct _no *esq;
+    struct _no *dir;
+}tno;
+
+typedef struct _arvore{
+    struct _no *raiz;
+}tarvore;
+
 typedef struct _hash{
     tcidade *cidades;
     int tamanho; // 16811 por ser primo
     int atual;
 }thash;
+
+typedef struct _vizinho{
+    tcidade cidade;
+    double distancia;
+}tvizinho;
+
+typedef struct _maxHeap{
+    tvizinho *vizinhos;
+    int n;
+}tmaxHeap;
+
+int h1(int codigo_ibge, int tamanho){
+    return (codigo_ibge) % tamanho;
+}
+
+int h2(int codigo_ibge, int tamanho){
+    return 1 + (codigo_ibge) % (tamanho - 1);
+}
+
+double calculaDistancia(tcidade cidade1, tcidade cidade2){
+    return sqrt(pow(cidade1.latitude - cidade2.latitude, 2) + pow(cidade1.longitude - cidade2.longitude, 2));
+}
 
 thash* criarHash(int tamanho){
     thash *hash = (thash*)malloc(sizeof(thash));
@@ -34,14 +67,6 @@ thash* criarHash(int tamanho){
         hash->cidades[i].codigo_ibge = 0;
     }
     return hash;
-}
-
-int h1(int codigo_ibge, int tamanho){
-    return (codigo_ibge) % tamanho;
-}
-
-int h2(int codigo_ibge, int tamanho){
-    return 1 + (codigo_ibge) % (tamanho - 1);
 }
 
 void imprimeInformacoes(tcidade cidade){
@@ -89,7 +114,80 @@ void buscaIBGE(thash* hash, int codigo_ibge){
     }
 }
 
-void lerArquivo(FILE* arquivo, thash* hash){
+void liberaHash(thash* hash){
+    free(hash->cidades);
+    free(hash);
+}
+
+void criaArvore(tarvore *arvore){
+    arvore->raiz = NULL;
+}
+
+void insereArvore(tarvore *arvore, tcidade cidade){
+    tno *novo = (tno*)malloc(sizeof(tno));
+    novo->cidade = cidade;
+    novo->esq = NULL;
+    novo->dir = NULL;
+    if(arvore->raiz == NULL){
+        arvore->raiz = novo;
+    }else{
+        int i = 0;
+        tno *atual = arvore->raiz;
+        tno *anterior = NULL;
+        while(atual != NULL){
+            anterior = atual;
+            if(i%2 == 0){
+                if(cidade.latitude < atual->cidade.latitude){
+                    atual = atual->esq;
+                }else{
+                    atual = atual->dir;
+                }
+            }
+            else{
+                if(cidade.longitude < atual->cidade.longitude){
+                    atual = atual->esq;
+                }else{
+                    atual = atual->dir;
+                }
+            }
+            i++;
+        }
+        if(cidade.latitude < anterior->cidade.latitude){
+            anterior->esq = novo;
+        }
+        else{
+            anterior->dir = novo;
+        }
+    }
+}
+
+void constroiHeap(tmaxHeap *heap, int n){
+    heap->vizinhos = (tvizinho*)malloc(n*sizeof(tvizinho));
+    heap->n = n;
+}
+
+void buscaVizinhos(thash *hash, tarvore *arvore, int codigo_ibge, int n){
+    int i = 0;
+    int pos = h1(codigo_ibge, hash->tamanho);
+    while(true){
+        if(hash->cidades[pos].codigo_ibge == codigo_ibge){
+            break;
+        }
+        if(i > hash->tamanho){
+            printf("Cidade nao encontrada!\n");
+            return;
+        }
+        i++;
+        pos = (h1(codigo_ibge, hash->tamanho) + i * h2(codigo_ibge, hash->tamanho)) % hash->tamanho;
+    }
+
+    tmaxHeap *heap = (tmaxHeap*)malloc(sizeof(tmaxHeap));
+    constroiHeap(heap, n);
+
+
+}
+
+void lerArquivo(FILE* arquivo, thash* hash, tarvore *arvore){
     char linha[200];
     tcidade cidade;
     while(fgets(linha, 200, arquivo)){
@@ -120,28 +218,26 @@ void lerArquivo(FILE* arquivo, thash* hash){
         if(strstr(linha, "fuso_horario")){
             sscanf(linha, "    \"fuso_horario\": \"%[^\"]\",", cidade.fuso_horario);
             insereCidade(hash, cidade);
+            insereArvore(arvore, cidade);
         }
     }
 }
 
-void liberaHash(thash* hash){
-    free(hash->cidades);
-    free(hash);
-}
-
-void interface(thash *hash){
+void interface(thash *hash, tarvore *arvore){
     int opcao = 0;
     while(opcao != 4){
         printf("--------------------------\n");
         printf("1 - Busca por Codigo IBGE\n");
-        printf("2 - Busca n Vizinhos\n");
-        printf("3 - Busca por Nome\n");
+        printf("2 - Busca os n Vizinhos\n");
+        printf("3 - Busca por os n Vizinhos pelo Nome da Cidade\n");
         printf("4 - Sair\n");
         printf("--------------------------\n");
         printf("Digite a opcao desejada: ");
         scanf("%d", &opcao);
         printf("--------------------------\n");
-        int codigo_ibge;
+        int codigo_ibge = 0;
+        int n;
+        
         switch(opcao){
             case 1:
                 printf("Digite o codigo IBGE: ");
@@ -151,7 +247,9 @@ void interface(thash *hash){
             case 2:
                 printf("Digite o codigo IBGE: ");
                 scanf("%d", &codigo_ibge);
-                //buscaVizinhos(hash, codigo_ibge);
+                printf("Digite a quantidade de vizinhos: ");
+                scanf("%d", &n);
+                buscaVizinhos(hash, arvore, codigo_ibge, n);
                 break;
             case 3:
                 printf("Digite o nome da cidade: ");
@@ -169,13 +267,15 @@ void interface(thash *hash){
     }
 }
 
-
 int main(){
     thash *hash = criarHash(TAM);
     FILE* arquivo = fopen("../dados/municipios.json", "r");
-    lerArquivo(arquivo, hash);
+    tarvore *arvore = (tarvore*)malloc(sizeof(tarvore));
+    criaArvore(arvore);
 
-    interface(hash);
+    lerArquivo(arquivo, hash, arvore);
+
+    interface(hash, arvore);
 
     fclose(arquivo);
     return EXIT_SUCCESS;
