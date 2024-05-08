@@ -324,7 +324,12 @@ void interface(thash *hash, tarvore *arvore){
                 scanf("%d", &codigo_ibge);
                 printf("Digite a quantidade de vizinhos: ");
                 scanf("%d", &n);
+                if(n > 0){
                 buscaVizinhos(hash, arvore, codigo_ibge, n);
+                }
+                else{
+                    printf("Favor informar um valor vádido!\n");
+                }
                 break;
             case 3:
                 printf("Digite o nome da cidade: ");
