@@ -44,7 +44,8 @@ typedef struct _vizinho{
 
 typedef struct _maxHeap{
     tvizinho *vizinhos;
-    int n;
+    int tam;
+    int tammax;
 }tmaxHeap;
 
 int h1(int codigo_ibge, int tamanho){
@@ -56,17 +57,7 @@ int h2(int codigo_ibge, int tamanho){
 }
 
 double calculaDistancia(tcidade cidade1, tcidade cidade2){
-    return sqrt(pow(cidade1.latitude - cidade2.latitude, 2) + pow(cidade1.longitude - cidade2.longitude, 2));
-}
-
-thash* criarHash(int tamanho){
-    thash *hash = (thash*)malloc(sizeof(thash));
-    hash->tamanho = tamanho;
-    hash->cidades = (tcidade*)malloc(tamanho*sizeof(tcidade)+1);
-    for(int i=0; i <= tamanho; i++){
-        hash->cidades[i].codigo_ibge = 0;
-    }
-    return hash;
+    return pow(cidade1.latitude - cidade2.latitude, 2) + pow(cidade1.longitude - cidade2.longitude, 2);
 }
 
 void imprimeInformacoes(tcidade cidade){
@@ -79,6 +70,24 @@ void imprimeInformacoes(tcidade cidade){
     printf("Siafi ID: %d\n", cidade.siafi_id);
     printf("DDD: %d\n", cidade.ddd);
     printf("Fuso Horario: \"%s\"\n", cidade.fuso_horario);
+}
+
+void imprimeHeap(tmaxHeap *heap){
+    for(int i = 1; i <= heap->tam; i++){
+        printf("--------------------------------------\n");
+        printf("%d° - Cidade: %s\n", i, heap->vizinhos[i-1].cidade.nome);
+        printf("        Distancia: %lf\n", sqrt(heap->vizinhos[i-1].distancia));
+    }
+}
+
+thash* criarHash(int tamanho){
+    thash *hash = (thash*)malloc(sizeof(thash));
+    hash->tamanho = tamanho;
+    hash->cidades = (tcidade*)malloc(tamanho*sizeof(tcidade)+1);
+    for(int i=0; i <= tamanho; i++){
+        hash->cidades[i].codigo_ibge = 0;
+    }
+    return hash;
 }
 
 void insereCidade(thash *hash, tcidade cidade){
@@ -101,7 +110,7 @@ void buscaIBGE(thash* hash, int codigo_ibge){
     while(true){
         if(hash->cidades[pos].codigo_ibge == codigo_ibge){
             printf("Cidade encontrada!\n");
-            printf("--------------------------\n");
+            printf("--------------------------------------\n");
             imprimeInformacoes(hash->cidades[pos]);
             break;
         }
@@ -119,51 +128,114 @@ void liberaHash(thash* hash){
     free(hash);
 }
 
+void liberaArvore(tno * no){
+    if(no->esq != NULL){
+        liberaArvore(no->esq);
+    }
+    if(no->dir != NULL){
+    liberaArvore(no->dir);
+    }
+    free(no);
+}
+
+void liberaHeap(tmaxHeap * heap){
+    free(heap);
+}
+
 void criaArvore(tarvore *arvore){
     arvore->raiz = NULL;
 }
 
-void insereArvore(tarvore *arvore, tcidade cidade){
-    tno *novo = (tno*)malloc(sizeof(tno));
-    novo->cidade = cidade;
-    novo->esq = NULL;
-    novo->dir = NULL;
-    if(arvore->raiz == NULL){
-        arvore->raiz = novo;
+void insereArvore(tno ** no, tcidade cidade, int i){
+    if(*no == NULL){
+        *no = (tno*)malloc(sizeof(tno));
+        (*no)->cidade = cidade;
+        (*no)->esq = NULL;
+        (*no)->dir = NULL;
     }else{
-        int i = 0;
-        tno *atual = arvore->raiz;
-        tno *anterior = NULL;
-        while(atual != NULL){
-            anterior = atual;
-            if(i%2 == 0){
-                if(cidade.latitude < atual->cidade.latitude){
-                    atual = atual->esq;
-                }else{
-                    atual = atual->dir;
-                }
+        if(i%2 == 0){
+            if(cidade.latitude < (*no)->cidade.latitude){
+                insereArvore(&(*no)->esq, cidade, ++i);
+            }else{
+                insereArvore(&(*no)->dir, cidade, ++i);
             }
-            else{
-                if(cidade.longitude < atual->cidade.longitude){
-                    atual = atual->esq;
-                }else{
-                    atual = atual->dir;
-                }
-            }
-            i++;
-        }
-        if(cidade.latitude < anterior->cidade.latitude){
-            anterior->esq = novo;
         }
         else{
-            anterior->dir = novo;
+            if(cidade.longitude < (*no)->cidade.longitude){
+                insereArvore(&(*no)->esq, cidade, ++i);
+            }else{
+                insereArvore(&(*no)->dir, cidade, ++i);
+            }
         }
     }
 }
 
+
 void constroiHeap(tmaxHeap *heap, int n){
     heap->vizinhos = (tvizinho*)malloc(n*sizeof(tvizinho));
-    heap->n = n;
+    heap->tammax = n;
+    heap->tam = 0;
+}
+
+void sobeHeap(tmaxHeap *heap, int i){
+    int pai = (i-1)/2;
+    if(i > 0 && heap->vizinhos[i].distancia > heap->vizinhos[pai].distancia){
+        tvizinho aux = heap->vizinhos[i];
+        heap->vizinhos[i] = heap->vizinhos[pai];
+        heap->vizinhos[pai] = aux;
+        sobeHeap(heap, pai);
+    }
+}
+
+void desceHeap(tmaxHeap *heap, int i, int n){
+    int esq = 2*i + 1;
+    int dir = 2*i + 2;
+    int maior = i;
+    if(esq < n && heap->vizinhos[esq].distancia > heap->vizinhos[maior].distancia){
+        maior = esq;
+    }
+    if(dir < n && heap->vizinhos[dir].distancia > heap->vizinhos[maior].distancia){
+        maior = dir;
+    }
+    if(maior != i){
+        tvizinho aux = heap->vizinhos[i];
+        heap->vizinhos[i] = heap->vizinhos[maior];
+        heap->vizinhos[maior] = aux;
+        desceHeap(heap, maior, n);
+    }
+}
+
+void insereHeap(tmaxHeap *heap, tvizinho vizinho){
+    heap->vizinhos[heap->tam] = vizinho;
+    sobeHeap(heap, heap->tam);
+    (heap->tam)++;
+}
+
+void buscaVizinhosRec(tno *no, tcidade cidade, tmaxHeap *heap){
+    if(no != NULL){
+        tvizinho vizinho;
+        vizinho.cidade = no->cidade;
+        vizinho.distancia = calculaDistancia(cidade, no->cidade);
+        if(heap->tam < heap->tammax && vizinho.distancia > 0){
+            insereHeap(heap, vizinho);
+        }else{
+            if(vizinho.distancia < heap->vizinhos[0].distancia && vizinho.distancia > 0){
+                heap->vizinhos[0] = vizinho;
+                desceHeap(heap, 0, heap->tam);
+            }
+        }
+        buscaVizinhosRec(no->esq, cidade, heap);
+        buscaVizinhosRec(no->dir, cidade, heap);
+    }
+}
+
+void heapSort(tmaxHeap *heap){
+    for(int i = heap->tam-1; i > 0; i--){
+        tvizinho aux = heap->vizinhos[0];
+        heap->vizinhos[0] = heap->vizinhos[i];
+        heap->vizinhos[i] = aux;
+        desceHeap(heap, 0, i);
+    }
 }
 
 void buscaVizinhos(thash *hash, tarvore *arvore, int codigo_ibge, int n){
@@ -184,7 +256,10 @@ void buscaVizinhos(thash *hash, tarvore *arvore, int codigo_ibge, int n){
     tmaxHeap *heap = (tmaxHeap*)malloc(sizeof(tmaxHeap));
     constroiHeap(heap, n);
 
-
+    buscaVizinhosRec(arvore->raiz, hash->cidades[pos], heap);
+    heapSort(heap);
+    imprimeHeap(heap);
+    liberaHeap(heap);
 }
 
 void lerArquivo(FILE* arquivo, thash* hash, tarvore *arvore){
@@ -218,7 +293,7 @@ void lerArquivo(FILE* arquivo, thash* hash, tarvore *arvore){
         if(strstr(linha, "fuso_horario")){
             sscanf(linha, "    \"fuso_horario\": \"%[^\"]\",", cidade.fuso_horario);
             insereCidade(hash, cidade);
-            insereArvore(arvore, cidade);
+            insereArvore(&arvore->raiz, cidade, 0);
         }
     }
 }
@@ -226,15 +301,15 @@ void lerArquivo(FILE* arquivo, thash* hash, tarvore *arvore){
 void interface(thash *hash, tarvore *arvore){
     int opcao = 0;
     while(opcao != 4){
-        printf("--------------------------\n");
+        printf("--------------------------------------\n");
         printf("1 - Busca por Codigo IBGE\n");
         printf("2 - Busca os n Vizinhos\n");
         printf("3 - Busca por os n Vizinhos pelo Nome da Cidade\n");
         printf("4 - Sair\n");
-        printf("--------------------------\n");
+        printf("--------------------------------------\n");
         printf("Digite a opcao desejada: ");
         scanf("%d", &opcao);
-        printf("--------------------------\n");
+        printf("--------------------------------------\n");
         int codigo_ibge = 0;
         int n;
         
@@ -258,6 +333,7 @@ void interface(thash *hash, tarvore *arvore){
                 //buscaNome(hash, nome);
                 break;
             case 4:
+                liberaArvore(arvore->raiz);
                 liberaHash(hash);
                 break;
             default:
