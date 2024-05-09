@@ -350,9 +350,14 @@ void interface(thash *hash, tarvore *arvore){
 
 int main(){
     thash *hash = criarHash(TAM);
-    FILE* arquivo = fopen("../dados/municipios.json", "r");
     tarvore *arvore = (tarvore*)malloc(sizeof(tarvore));
     criaArvore(arvore);
+    
+    FILE* arquivo = fopen("../dados/municipios.json", "r");
+    if(arquivo == NULL){
+        printf("Erro ao abrir o arquivo!\n");
+        return EXIT_FAILURE;
+    }
 
     lerArquivo(arquivo, hash, arvore);
 
