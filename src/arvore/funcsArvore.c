@@ -39,7 +39,7 @@ void liberaArvore(tno * no){
         liberaArvore(no->esq);
     }
     if(no->dir != NULL){
-    liberaArvore(no->dir);
+        liberaArvore(no->dir);
     }
     free(no);
 }

@@ -23,6 +23,7 @@ void insereHeap(tmaxHeap *heap, tvizinho vizinho){
 }
 
 void liberaHeap(tmaxHeap * heap){
+    free(heap->vizinhos);
     free(heap);
 }
 

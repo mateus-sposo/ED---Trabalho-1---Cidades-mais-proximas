@@ -105,6 +105,7 @@ void interface(thash *hash_cod, thash *hash_nome, tarvore *arvore){
                 break;
             case 4:
                 liberaArvore(arvore->raiz);
+                free(arvore);
                 liberaHash(hash_cod);
                 liberaHash(hash_nome);
                 break;
