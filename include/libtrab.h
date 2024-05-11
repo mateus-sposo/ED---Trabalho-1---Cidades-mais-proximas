@@ -53,7 +53,7 @@ typedef struct _maxHeap{
 //pasta arvore
     //arquivo buscaArvore.c
 void buscaVizinhosRec(tno *no, tcidade cidade, tmaxHeap *heap, int h);
-void buscaVizinhos(thash *hash, tarvore *arvore, tcidade cidade, int n);
+void buscaVizinhos(tarvore *arvore, tcidade cidade, int n);
     //arquivo funcsArvore.c
 void criaArvore(tarvore *arvore);
 void insereArvore(tno ** no, tcidade cidade, int i);

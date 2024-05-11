@@ -81,9 +81,9 @@ void interface(thash *hash_cod, thash *hash_nome, tarvore *arvore){
                 scanf("%d", &codigo_ibge);
                 printf("Digite a quantidade de vizinhos: ");
                 scanf("%d", &n);
-                tcidade cidadeBusca = buscaIBGE(hash_cod, codigo_ibge);
+                tcidade resultado1 = buscaIBGE(hash_cod, codigo_ibge);
                 if(n > 0){
-                    buscaVizinhos(hash_cod, arvore, cidadeBusca, n);
+                    buscaVizinhos(arvore, resultado1, n);
                 }
                 else{
                     printf("Favor informar um valor vádido!\n");
@@ -93,11 +93,11 @@ void interface(thash *hash_cod, thash *hash_nome, tarvore *arvore){
                 printf("Digite o nome da cidade: ");
                 char nome[MAX];
                 scanf(" %[^\n]", nome);
-                tcidade resultado = buscaNome(hash_nome, nome);
-                if(resultado.codigo_ibge != 0){
+                tcidade resultado2 = buscaNome(hash_nome, nome);
+                if(resultado2.codigo_ibge != 0){
                     printf("Digite a quantidade de vizinhos: ");
                     scanf("%d", &n);
-                    buscaVizinhos(hash_cod, arvore, resultado, n);
+                    buscaVizinhos(arvore, resultado2, n);
                 }
                 else{
                     printf("Cidade nao encontrada!\n");

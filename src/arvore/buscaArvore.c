@@ -47,25 +47,11 @@ void buscaVizinhosRec(tno *no, tcidade cidade, tmaxHeap *heap, int h){
     }
 }
 
-void buscaVizinhos(thash *hash, tarvore *arvore, tcidade cidade, int n){
-    int i = 0;
-    int pos = h1(cidade.codigo_ibge, hash->tamanho);
-    while(true){
-        if(hash->cidades[pos].codigo_ibge == cidade.codigo_ibge){
-            break;
-        }
-        if(i > hash->tamanho){
-            printf("Cidade nao encontrada!\n");
-            return;
-        }
-        i++;
-        pos = (h1(cidade.codigo_ibge, hash->tamanho) + i * h2(cidade.codigo_ibge, hash->tamanho)) % hash->tamanho;
-    }
-
+void buscaVizinhos(tarvore *arvore, tcidade cidade, int n){
     tmaxHeap *heap = (tmaxHeap*)malloc(sizeof(tmaxHeap));
     constroiHeap(heap, n);
 
-    buscaVizinhosRec(arvore->raiz, hash->cidades[pos], heap, 0);
+    buscaVizinhosRec(arvore->raiz, cidade, heap, 0);
     heapSort(heap);
     imprimeHeap(heap);
     liberaHeap(heap);
