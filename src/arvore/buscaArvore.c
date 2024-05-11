@@ -6,7 +6,7 @@
 #define TAM 16811
 #include "../../include/libtrab.h"
 
-void buscaVizinhosRec(tno *no, tcidade cidade, tmaxHeap *heap){
+void buscaVizinhosRec(tno *no, tcidade cidade, tmaxHeap *heap, int h){
     if(no != NULL){
         tvizinho vizinho;
         vizinho.cidade = no->cidade;
@@ -19,8 +19,31 @@ void buscaVizinhosRec(tno *no, tcidade cidade, tmaxHeap *heap){
                 desceHeap(heap, 0, heap->tam);
             }
         }
-        buscaVizinhosRec(no->esq, cidade, heap);
-        buscaVizinhosRec(no->dir, cidade, heap);
+        if(h%2 == 0){
+            if(cidade.latitude < no->cidade.latitude){
+                buscaVizinhosRec(no->esq, cidade, heap, h+1);
+                if(pow(cidade.latitude - no->cidade.latitude,2) < heap->vizinhos[0].distancia){
+                    buscaVizinhosRec(no->dir, cidade, heap, h+1);
+                }
+            }else{
+                buscaVizinhosRec(no->dir, cidade, heap, h+1);
+                if(pow(cidade.latitude - no->cidade.latitude,2) < heap->vizinhos[0].distancia){
+                    buscaVizinhosRec(no->esq, cidade, heap, h+1);
+                }
+            }
+        }else{
+            if(cidade.longitude < no->cidade.longitude){
+                buscaVizinhosRec(no->esq, cidade, heap, h+1);
+                if(pow(cidade.longitude - no->cidade.longitude,2) < heap->vizinhos[0].distancia){
+                    buscaVizinhosRec(no->dir, cidade, heap, h+1);
+                }
+            }else{
+                buscaVizinhosRec(no->dir, cidade, heap, h+1);
+                if(pow(cidade.longitude - no->cidade.longitude,2) < heap->vizinhos[0].distancia){
+                    buscaVizinhosRec(no->esq, cidade, heap, h+1);
+                }
+            }
+        }
     }
 }
 
@@ -42,7 +65,7 @@ void buscaVizinhos(thash *hash, tarvore *arvore, tcidade cidade, int n){
     tmaxHeap *heap = (tmaxHeap*)malloc(sizeof(tmaxHeap));
     constroiHeap(heap, n);
 
-    buscaVizinhosRec(arvore->raiz, hash->cidades[pos], heap);
+    buscaVizinhosRec(arvore->raiz, hash->cidades[pos], heap, 0);
     heapSort(heap);
     imprimeHeap(heap);
     liberaHeap(heap);
