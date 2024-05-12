@@ -30,7 +30,6 @@ tcidade buscaIBGE(thash* hash, int codigo_ibge){
             return hash->cidades[pos];
         }
         if(i > hash->tamanho){
-            printf("Cidade nao encontrada!\n");
             tcidade falsa;
             falsa.codigo_ibge = 0;
             return falsa;

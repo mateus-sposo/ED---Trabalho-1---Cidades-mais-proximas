@@ -82,7 +82,7 @@ void interface(thash *hash_cod, thash *hash_nome, tarvore *arvore){
                 printf("Digite a quantidade de vizinhos: ");
                 scanf("%d", &n);
                 tcidade resultado1 = buscaIBGE(hash_cod, codigo_ibge);
-                if(n > 0){
+                if(n > 0 && resultado1.codigo_ibge != 0){
                     buscaVizinhos(arvore, resultado1, n);
                 }
                 else{
